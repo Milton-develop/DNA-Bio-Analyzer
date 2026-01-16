@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioSeq Analyzer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<input type="checkbox" id="menu-toggle" class="menu-toggle" aria-label="Toggle Navigation Menu">
+<label for="menu-toggle" class="hamburger">
+    <span class="bar top"></span>
+    <span class="bar middle"></span>
+    <span class="bar bottom"></span>
+</label>
+    <aside>
+        <nav>
+            <ul class="sidebar">
+                <li class="active"><a>Dashboard</a></li>
+                <li><a href="{{ url_for('about') }}">About Tool</a></li>
+            </ul>
+        </nav>
+         <button id="darkModeToggle" type="button">Dark Mode</button>
+    </aside>
+    <main>
+        <div class="head">
+        <h1>Bioinformatics Sequence Analyzer</h1>
+        <h3>DNA & Protein Sequence Interface</h3>
+        </div>
+    <form method="POST" class="dna-sequence">
+        <label for="sequence" name="sequence">Enter DNA Sequence</label>
+        <textarea name="sequence" id="sequence" placeholder="AGTCTTGACG..." rows="5" required></textarea>
+        <button type="submit" class="btn">Analyze Sequence</button>
+        <button type="reset" class="btnn">Clear</button>
+        <a href="/history" class="tests">View Previous Tests</a>
+
+
+{% if error %}
+<div class="error-box">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if results %}
+<div class="success-box">
+  Analysis completed successfully.
+</div>
+
+<div class="tables-container">
+    
+    <div class="table-box">
+        <h3>Amino Acid Translation</h3>
+        <div class="scroll-area">
+            <table class="table">
+                <thead>
+                    <tr><th>Codon</th><th>Amino Acid</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in results.protein %}
+                    <tr>
+                        <td><strong>{{ item.codon }}</strong></td>
+                        <td>{{ item.name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="table-box">
+        <h3>DNA Strand Mapping (5' → 3')</h3>
+        <div class="scroll-area">
+            <table class="table">
+                <thead>
+                    <tr><th>Original</th><th>Complement</th></tr>
+                </thead>
+                <tbody>
+                    {% for pair in results.rev_comp_pairs %}
+                    <tr>
+                        <td class="base-{{pair.original}}">{{ pair.original }}</td>
+                        <td class="base-{{pair.complement}}">{{ pair.complement }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<button type="button" class="btn" onclick="downloadReport()">
+    <i class="fas fa-download"></i> Download TXT Report
+</button>
+<button type="button" class="btn" onclick="downloadPDF()">
+    Download PDF Report
+</button>
+{% endif %}
+
+
+    </form>
+
+ {% if results %}
+<section class="stats">
+  <div class="stat-card">
+    <h4>Sequence Length</h4>
+    <p>{{ results.length }} bp</p>
+  </div>
+
+  <div class="stat-card">
+    <h4>GC Content</h4>
+    <p>{{ results.gc }}%</p>
+  </div>
+
+  <div class="stat-card">
+    <h4>Protein Length</h4>
+    <p>{{ results.protein_length }} aa</p>
+  </div>
+</section>
+{% endif %}
+
+ <!-- RESULTS TABLE  -->
+<section class="card">
+      <h3>Analysis Summary</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Description</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Length</td>
+            <td>Total nucleotide count</td>
+            <td>{{ results.length }}</td>
+          </tr>
+          <tr>
+            <td>GC %</td>
+            <td>Guanine-Cytosine content</td>
+            <td>{{ results.gc }}</td>
+          </tr>
+          <tr>
+            <td>Protein Size</td>
+            <td>Translated amino acids</td>
+            <td>{{ results.protein_length }} </td>
+          </tr>
+        </tbody>
+        {% if results %}
+    <table>
+        <thead>
+            <tr>
+                <th>Codon</th>
+                <th>Amino Acid</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in results.protein %}
+            <tr class="{{ 'start-highlight' if 'START' in item.name else '' }} {{ 'stop-highlight' if 'STOP' in item.name else '' }}">
+                <td><strong>{{ item.codon }}</strong></td>
+                <td>{{ item.name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+      </table>
+    </section>
+
+  
+    </main>  
+
+
+<script>
+const toggle = document.getElementById('darkModeToggle');
+
+toggle.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode'); // toggle dark mode
+
+  if(document.body.classList.contains('dark-mode')) {
+    toggle.textContent = 'Light Mode'; // change button text
+  } else {
+    toggle.textContent = 'Dark Mode';
+  }
+});
+
+const toggleBtn = document.getElementById('darkModeButton'); // Use your actual button ID
+const body = document.body;
+
+// 1. Check for saved mode on page load
+if (localStorage.getItem('theme') === 'dark') {
+    body.classList.add('dark-mode');
+}
+
+// 2. Toggle and Save
+toggleBtn.addEventListener('click', () => {
+    body.classList.toggle('dark-mode');
+    
+    // Save the preference
+    if (body.classList.contains('dark-mode')) {
+        localStorage.setItem('theme', 'dark');
+    } else {
+        localStorage.setItem('theme', 'light');
+    }
+});
+
+
+function downloadReport() {
+    const length = "{{ results.length }}";
+    const gc = "{{ results.gc }}%";
+    const revComp = "{{ results.rev_comp }}";
+    
+    // Get the protein list from Python and convert to a JS object
+  // Add 'if results else []' inside the brackets
+const proteinData = JSON.parse('{{ results.protein | tojson | safe if results else "[]" }}');
+    
+    // Create a formatted string for the Amino Acids
+    let proteinList = "AMINO ACID BREAKDOWN:\n";
+    proteinData.forEach((item, index) => {
+        proteinList += `Codon ${index + 1}: ${item.codon} -> ${item.name}\n`;
+    });
+
+    const reportText = `BIOINFORMATICS ANALYSIS REPORT
+-------------------------------
+METRICS:
+Sequence Length: ${length} bp
+GC Content: ${gc}
+Reverse Complement: ${revComp}
+
+-------------------------------
+${proteinList}
+-------------------------------
+Generated by BioSeq Analyzer`;
+
+    // Trigger Download
+    const blob = new Blob([reportText], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'full_dna_report.txt';
+    link.click();
+}
+
+function copyToClipboard() {
+    const text = document.getElementById("protein-text").innerText;
+    navigator.clipboard.writeText(text);
+    alert("Protein sequence copied to clipboard!");
+}
+
+async function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // 1. Get the data (using the safe parsing we fixed earlier)
+    const length = "{{ results.length if results else '' }}";
+    const gc = "{{ results.gc if results else '' }}%";
+    const revComp = "{{ results.rev_comp if results else '' }}";
+    const proteinData = JSON.parse('{{ results.protein | tojson | safe if results else "[]" }}');
+
+    // 2. Set PDF Styling
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("Bioinformatics Analysis Report", 20, 20);
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+    doc.line(20, 35, 190, 35); // Horizontal line
+
+    // 3. Add Metrics
+    doc.text(`Sequence Length: ${length} bp`, 20, 45);
+    doc.text(`GC Content: ${gc}`, 20, 55);
+    doc.text(`Reverse Complement:`, 20, 65);
+    doc.setFontSize(10);
+    doc.text(revComp.match(/.{1,80}/g) || [], 20, 72); // Wraps long sequences
+
+    // 4. Add Amino Acid Table
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Amino Acid Breakdown:", 20, 100);
+    
+    let yPos = 110;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+
+    proteinData.forEach((item, index) => {
+        if (yPos > 280) { // Check for page end
+            doc.addPage();
+            yPos = 20;
+        }
+        doc.text(`${index + 1}. Codon: ${item.codon} -> ${item.name}`, 20, yPos);
+        yPos += 7;
+    });
+
+    // 5. Save the PDF
+    doc.save("Bio_Analysis_Report.pdf");
+}
+</script>
+
+</body>
+</html>

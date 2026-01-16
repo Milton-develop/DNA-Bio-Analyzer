@@ -1,0 +1,464 @@
+:root {
+  --bg-main: #f4f7fa;
+  --bg-card: #ffffff;
+  --bg-sidebar: #0f172a;
+
+  --text-main: #1f2933;
+  --text-muted: #475569;
+
+  --primary: #0284c7;
+  --accent: #06b6d4;
+
+  --border: #cbd5e1;
+}
+*{
+    margin: 0;
+    padding: 0;
+}
+body{
+    display: flex;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+}
+aside{
+    background-color: var(--bg-sidebar);
+    width: 10em;
+    color: var(--text-muted);
+    padding: 20px;
+    margin-right: 1px;
+}
+.sidebar{
+    list-style: none;
+}
+.sidebar li{
+    padding: 0.75em 1em;
+    margin-bottom: 0.5em;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+}
+a{
+    color: white;
+    text-decoration: none;
+}
+.sidebar li:hover, .active {
+    background: var(--primary);
+}
+.head{
+    padding: 20px;
+    width: 56.9em;
+    margin-bottom: 10px;
+}
+label{
+    display: block;
+    padding-bottom: 10px;
+    font-size: 1.5em;
+    padding-left: 10px;
+}
+#sequence{
+    display: block;
+    margin: 10px;
+    width: 60em;
+    font-family: 'time new roman';
+    padding: 5px;
+}
+.btn{
+    margin: 10px;
+    padding: 11px;
+    background: var(--primary);
+    border: none;
+    border-radius: 6px;
+}
+.btn:hover{
+    cursor: pointer;
+    background: var(--accent);
+}
+.stats{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.stat-card{
+    background: var(--bg-card);
+    width: 8em;
+    padding: 7px;
+    margin: 0px 10px;
+    height: 5em;
+    border: 2px solid var(--text-main);
+    border-radius: 6px;
+}
+.stat-card h4{
+    padding-bottom: 15px;
+}
+.stat-card p{
+    font-size: 1.5em;
+    padding-left: 10px;
+    font-weight: bold;
+}
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.75rem;
+}
+
+thead {
+  background-color: var(--border);
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--bg-card);
+}
+.status-message{
+    color: lawngreen;
+}
+
+.dark-mode {
+  --bg-main: #020617;
+  --bg-card: #020617;
+  --bg-sidebar: #020617;
+
+  --text-main: #e5e7eb;
+  --text-muted: #9ca3af;
+
+  --primary: #38bdf8;
+  --accent: #22d3ee;
+
+  --border: #1e293b;
+}
+#darkModeToggle{
+    padding: 8px;
+    margin-top: 10px;
+    margin-left: 20px;
+    border-radius: 6px;
+    background: var(--primary);
+    cursor: pointer;
+}
+/* Overlay background */
+#messageOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Message box */
+#messageBox {
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  font-family: sans-serif;
+  max-width: 300px;
+  color: var(--accent);
+}
+
+/* Close button */
+#closeBtn {
+  margin-top: 15px;
+  padding: 5px 15px;
+  border: none;
+  background: var(--bg-sidebar);
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#closeBtn:hover {
+  background: var(--primary);
+}
+.btnn{
+    margin: 10px;
+    padding: 7px;
+    background: var(--bg-card);
+    border: 2px solid var(--primary);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--accent);
+}
+
+
+
+@media (max-width: 600px) { 
+    /* --- Base Mobile Adjustments --- */
+
+body {
+    display: flex;
+    flex-direction: column; /* Stack sidebar on top by default for mobile */
+    min-height: 100vh;
+}
+
+aside {
+    width: auto; /* Remove fixed 10em width */
+    margin-right: 0;
+    padding: 15px;
+}
+
+.head {
+    width: auto; /* Remove fixed 56.9em */
+    padding: 15px;
+}
+
+#sequence {
+    width: calc(100% - 20px); /* Responsive width instead of 60em */
+    box-sizing: border-box;
+    margin: 10px auto;
+}
+
+.stat-card {
+    width: auto; /* Allow cards to fill grid space */
+    margin: 0;
+}
+
+/* --- Responsive Media Query (Tablets & Desktops) --- */
+@media (min-width: 768px) {
+    body {
+        flex-direction: row; /* Side-by-side layout for larger screens */
+    }
+
+    aside {
+        width: 12em;
+        min-height: 100vh;
+    }
+
+    .head {
+        flex: 1; /* Take remaining space */
+    }
+
+    #sequence {
+        width: 95%; /* Adjust as needed for desktop */
+    }
+}
+
+/* --- Mobile Table Fix --- */
+@media (max-width: 600px) {
+    table, thead, tbody, th, td, tr {
+        display: inline-block; /* Make table scrollable or stacked on tiny screens */
+        /* padding: 8px; */
+        border: none;
+        background: none;
+    }
+
+    thead tr {
+        position: absolute;
+        width: 370px;
+        padding-bottom: 50px;
+        margin: 10px;
+        gap: 20px;
+        display: none;
+ 
+    }
+
+    th{
+        padding: 15px;
+        top: 20px;
+        display: none;
+    }
+
+    tr {
+        border: 4px solid var(--border);
+        margin: 5px;
+        
+    }
+
+    td {
+        border: none;
+        position: relative;
+        padding: 5px;
+        top: 10px;
+        width: 110px;
+        display: block;
+        padding-top: 10px;
+        padding-left: 2em;
+        margin: 1em;
+    }
+
+    td:before {
+        content: attr(data-label); /* Use data-label for mobile context */
+        position: absolute;
+        /* left: 10px; */
+        font-weight: bold;
+    }
+}
+}
+
+/* --- Hamburger Styling --- */
+.menu-toggle {
+    display: none; /* Hide the actual checkbox */
+}
+
+.hamburger {
+    display: none; /* Hidden by default on desktop */
+    cursor: pointer;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1001;
+}
+
+/* The three bars of the hamburger */
+.hamburger span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: var(--accent);
+    margin: 5px 0;
+    transition: 0.3s;
+}
+
+/* --- Mobile Logic --- */
+@media (max-width: 767px) {
+    .hamburger {
+        display: block; /* Show hamburger on mobile */
+    }
+
+    aside {
+        position: fixed;
+        left: -100%; /* Hide sidebar off-screen */
+        top: 0;
+        width: 250px;
+        height: 100%;
+        z-index: 1000;
+        transition: 0.3s;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        padding-top: 60px;
+    }
+
+    /* When checkbox is checked, slide sidebar in */
+    .menu-toggle:checked ~ aside {
+        left: 0;
+    }
+
+    /* Move the main content over slightly or dim it */
+    .head {
+        margin-top: 60px; /* Make room for the hamburger icon at top */
+    }
+}
+
+/* --- Desktop Logic --- */
+@media (min-width: 768px) {
+    aside {
+        position: static; /* Back to normal flow */
+        left: 0;
+    }
+}
+
+/* Styling for the individual bars */
+.hamburger .bar {
+    display: block;
+    width: 25px;
+    height: 3px;
+     background: var(--accent); /* Use your sidebar color so it's visible on light bg */
+    margin: 5px 0;
+    transition: all 0.3s ease-in-out;
+}
+
+/* --- The Transformation Logic --- */
+
+/* 1. Rotate the top bar 45 degrees */
+.menu-toggle:checked + .hamburger .top {
+    transform: translateY(8px) rotate(45deg);
+    background: white; /* Change to white so it's visible over the open sidebar */
+}
+
+/* 2. Hide the middle bar */
+.menu-toggle:checked + .hamburger .middle {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+/* 3. Rotate the bottom bar -45 degrees */
+.menu-toggle:checked + .hamburger .bottom {
+    transform: translateY(-8px) rotate(-45deg);
+    background: white;
+}
+
+/* Ensure the hamburger icon stays on top of the menu */
+.hamburger {
+    position: fixed;
+    z-index: 1100; /* Higher than the aside's 1000 */
+}
+
+@media (max-width: 767px) {
+    /* Dim/Blur the main content when menu is open */
+    .menu-toggle:checked ~ .head, 
+    .menu-toggle:checked ~ .stats, 
+    .menu-toggle:checked ~ table {
+        filter: blur(2px);
+        opacity: 0.5;
+        pointer-events: none; /* Prevents clicking links/buttons while menu is open */
+    }
+}
+
+.error-box {
+  background: #ffe6e6;
+  color: #b30000;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.success-box {
+  background: #e6fff2;
+  color: #006633;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.start-highlight { border-left: 5px solid #28a745; background-color: #f0fff0; color: #74d674;}
+.stop-highlight { border-left: 5px solid #dc3545; background-color: #fff0f0; color: #721c24; }
+
+/* Container for both tables */
+.tables-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Individual table box styling */
+.table-box {
+    flex: 1;
+    min-width: 300px; /* Ensures they don't get too skinny */
+    background: var(--bg-main);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Scrollable area for long sequences */
+.scroll-area {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+}
+
+/* Base Color Coding */
+.base-A { color: #d9534f; font-weight: bold; } /* Red */
+.base-T { color: #0275d8; font-weight: bold; } /* Blue */
+.base-G { color: #f0ad4e; font-weight: bold; } /* Orange */
+.base-C { color: #5cb85c; font-weight: bold; } /* Green */
+
+/* Dark Mode adjustment for bases */
+body.dark-mode .base-A { color: #ff6b6b; }
+body.dark-mode .base-T { color: #4dabf7; }
+body.dark-mode .base-G { color: #ffd43b; }
+body.dark-mode .base-C { color: #69db7c; }
+
+.tests{
+    color: var(--primary);
+}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioseq Analyzer</title>
+   <!-- <link rel="stylesheet" href="../static/css/about.css"> -->
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+
+</head>
+<body>
+    <h1>About Bioseq Analyzer</h1>
+    <h3>
+   
+
+
+
+About the DNA & Protein Sequence Analyzer: 
+<br>
+Welcome to a streamlined bioinformatics suite designed for the modern researcher. This platform bridges the gap between raw genetic data and functional protein analysis, providing an intuitive interface to decode the "blueprint of life."
+<br>
+
+<br>
+Our Mission:
+<br>
+In an era of genomic discovery, tools should be as powerful as they are accessible. This analyzer was built to provide high-fidelity DNA-to-Protein translation and structural strand mapping without the complexity of traditional command-line tools. Whether you are validating a PCR primer or exploring an open reading frame, our interface delivers immediate, visual results.
+<br>
+
+<br>
+Key Features:
+<br>
+Dual-Strand Mapping: Instantly generate the complementary antisense strand with color-coded nucleotide visualization for rapid pattern recognition.
+<br>
+Intelligent Translation: Accurate conversion of DNA codons into their respective amino acids, including precise detection of STOP codons (Opal, Ochre, and Amber).
+<br>
+Chemical Profiling: Beyond the sequence, analyze the translated protein’s "personality" through a breakdown of Hydrophobic, Polar, Acidic, and Basic properties.
+<br>
+Data Portability: Designed for the mobile researcher with support for PDF and TXT exports, ensuring your results are lab-notebook ready wherever you are.
+<br>
+Bio-Validation: A robust pre-analysis engine that cleans sequences and detects non-biological characters, ensuring data integrity before processing begins.
+<br>
+
+<br>
+The Tech Stack:
+<br>
+This platform is a testament to the power of modern web technologies:
+<br>
+Engine: Powered by Python & Flask, handling complex biological logic and sequence manipulation.
+<br>
+Logic: Custom-built translation and chemical classification algorithms in `analysis.py`.
+<br>
+Frontend: A responsive, interactive UI utilizing HTML5, CSS, and JavaScript for real-time visualization.
+<br>
+Graphics: Lightweight, high-performance SVG-based gauges and dynamic composition bars.
+<br>
+
+<br>
+How to Use It:
+<br>
+1. Input: Paste your DNA sequence (A, T, G, C) into the analyzer.
+<br>
+2. Process: Click "Analyze" to trigger the translation engine.
+<br>
+3. Explore: Toggle Dark Mode for better visibility or review the side-by-side strand mapping.
+<br>
+4. Export: Download your findings as a professional PDF report for further study.
+
+    </h3>
+    <!-- <button onclick="window.location.href='index.html'" class="btn">Home</button> -->
+</body>
+</html>

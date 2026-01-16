@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sequence History</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; }
+        h1, h2 { color: #333; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #0284c7; }
+        .sequence-block { background-color: #fff; padding: 10px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <h1>Sequence History</h1>
+    {% if history %}
+        {% for item in history %}
+        <div class="sequence-block">
+            <h2>{{ item.file }} {% if item.results.source %}(Source: {{ item.results.source }}){% endif %}</h2>
+            <p><strong>Sequence Length:</strong> {{ item.results.length }} bp</p>
+            <p><strong>GC Content:</strong> {{ item.results.gc }}%</p>
+            <p><strong>Protein Length:</strong> {{ item.results.protein_length }} aa</p>
+            <p><strong>DNA Strand (5' ➡️ 3'):</strong> {{ item.results.rev_comp_pairs | map(attribute='original') | join('') }}</p>
+            <p><strong>Reverse Complement:</strong> {{ item.results.rev_comp }}</p>
+            
+            <h3>Protein Translation</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Codon</th>
+                        <th>Amino Acid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aa in item.results.protein %}
+                    <tr>
+                        <td>{{ aa.codon }}</td>
+                        <td>{{ aa.name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No previous sequences.</p>
+    {% endif %}
+    <a href="/" class='back'>Back to Dashboard</a>
+</body>
+</html>
