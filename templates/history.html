@@ -1,137 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Sequence History</title>
-    <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 0 20px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-top: 30px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-radius: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #0284c7;
-            color: white;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        tr:hover {
-            background-color: #e8f5e9;
-        }
-
-        .protein {
-            font-family: monospace;
-            word-break: break-word;
-        }
-
-        .note {
-            margin-top: 15px;
-            font-style: italic;
-            color: red;
-            text-align: center;
-        }
-
-        a.back-link {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #0284c7;
-            color: white;
+        body { font-family: Arial, sans-serif;
+              padding: 20px;
+              background-color: #f9f9f9; }
+        h1, h2 { color: #333; }
+        table { border-collapse: collapse;
+               width: 100%;
+               margin-bottom: 30px; }
+        th, td { border: 1px solid #ccc;
+                padding: 8px;
+                text-align: left; }
+        th { background-color: #0284c7; }
+        .sequence-block { background-color: #fff;
+                         padding: 10px;
+                         margin-bottom: 20px; 
+                         border-radius: 5px; 
+                         box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+        .back{
+            color: black;
+            background: #0284c7;
+            padding: 10px;
             text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.3s;
         }
-
-        a.back-link:hover {
-            background-color: #3a7790;
-        }
-
-        @media (max-width: 768px) {
-            table, th, td {
-                font-size: 12px;
-            }
+        .note{
+            text-align: center;
+            color:red;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Sequence History (Last 10)</h1>
-
-        {% if history %}
+    <h1>Sequence History</h1>
+    {% if history %}
+        {% for item in history %}
+        <div class="sequence-block">
+            <h2>{{ item.file }} {% if item.results.source %}(Source: {{ item.results.source }}){% endif %}</h2>
+            <p><strong>Sequence Length:</strong> {{ item.results.length }} bp</p>
+            <p><strong>GC Content:</strong> {{ item.results.gc }}%</p>
+            <p><strong>Protein Length:</strong> {{ item.results.protein_length }} aa</p>
+            <p><strong>DNA Strand (5' ➡️ 3'):</strong> {{ item.results.rev_comp_pairs | map(attribute='original') | join('') }}</p>
+            <p><strong>Reverse Complement:</strong> {{ item.results.rev_comp }}</p>
+            
+            <h3>Protein Translation</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Source</th>
-                        <th>DNA Length (bp)</th>
-                        <th>GC Content (%)</th>
-                        <th>Protein Length (aa)</th>
-                        <th>Protein Sequence</th>
-                        <th>Reverse Complement</th>
-                        <th>Strand Mapping</th>
+                        <th>Codon</th>
+                        <th>Amino Acid</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for entry in history %}
-                        <tr>
-                            <td>{{ entry.file }}</td>
-                            <td>{{ entry.results.length }}</td>
-                            <td>{{ entry.results.gc }}</td>
-                            <td>{{ entry.results.protein_length }}</td>
-                            <td class="protein">{{ entry.results.protein_str }}</td>
-                            <td class="protein">{{ entry.results.rev_comp }}</td>
-                            <td class="protein">
-                                {% for pair in entry.results.rev_comp_pairs %}
-                                    {{ pair.original }}→{{ pair.complement }}{% if not loop.last %}, {% endif %}
-                                {% endfor %}
-                            </td>
-                        </tr>
+                    {% for aa in item.results.protein %}
+                    <tr>
+                        <td>{{ aa.codon }}</td>
+                        <td>{{ aa.name }}</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <p class="note">
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No previous sequences.</p>
+    {% endif %}
+    <p class="note">
                 ⚠️ Note: This history is temporary and will be erased once you close the website or your session ends.
             </p>
-        {% else %}
-            <p class="note">No sequences processed yet.</p>
-        {% endif %}
-
-        <div style="text-align:center;">
-            <a href="/" class="back-link">Back to Home</a>
-        </div>
-    </div>
+    <a href="/" class='back'>Back to Dashboard</a>
 </body>
 </html>
