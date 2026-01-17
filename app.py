@@ -1,45 +1,44 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 from analysis import clean_sequence, sequence_length, gc_content, translate_dna, is_valid_dna, reverse_complement
 import threading
 import time
 import os
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+import uuid
 
 app = Flask(__name__)
-
-# --- Global variables ---
-latest_results = None
-latest_error = None
-sequence_history = []  # Store history of sequences
+app.secret_key = "supersecretkey"  # Required for sessions
 
 # --- Folder to watch for new DNA files ---
 WATCH_FOLDER = "./lab_exports"
 os.makedirs(WATCH_FOLDER, exist_ok=True)
 
+# --- Initialize session-specific storage ---
+def init_session():
+    if "sequence_history" not in session:
+        session["sequence_history"] = []
+
 # --- Watchdog event handler ---
 class DNAFileHandler(FileSystemEventHandler):
     def on_created(self, event):
-        global latest_results, latest_error, sequence_history
         if event.is_directory:
             return
         if event.src_path.endswith((".txt", ".csv")):
             try:
                 with open(event.src_path, "r") as f:
                     raw_seq = f.read().strip()
-                
+
                 seq = clean_sequence(raw_seq)
                 filename_or_manual = os.path.basename(event.src_path)
 
                 if not seq:
-                    latest_error = f"No DNA sequence found in {filename_or_manual}"
-                    latest_results = None
+                    print(f"No DNA sequence found in {filename_or_manual}")
                     return
                 if not is_valid_dna(seq):
-                    latest_error = f"Invalid DNA sequence in {filename_or_manual}"
-                    latest_results = None
+                    print(f"Invalid DNA sequence in {filename_or_manual}")
                     return
-                
+
                 # --- Process DNA ---
                 protein_data = translate_dna(seq)
                 rev_comp_seq = reverse_complement(seq)
@@ -48,7 +47,7 @@ class DNAFileHandler(FileSystemEventHandler):
                 rev_comp_pairs = comp_pairs[::-1]
                 protein_string = "".join([item['name'][0] if item['name'] != 'STOP' else '*' for item in protein_data])
 
-                latest_results = {
+                results = {
                     "length": sequence_length(seq),
                     "gc": gc_content(seq),
                     "protein_length": len(protein_data),
@@ -59,18 +58,19 @@ class DNAFileHandler(FileSystemEventHandler):
                     "source": filename_or_manual
                 }
 
-                # --- Append to history ---
-                sequence_history.append({
+                # --- Add to session history ---
+                # Generate unique ID per file to avoid collisions
+                init_session()
+                session["sequence_history"].append({
+                    "id": str(uuid.uuid4()),
                     "file": filename_or_manual,
-                    "results": latest_results
+                    "results": results
                 })
-
-                latest_error = None
+                session.modified = True
                 print(f"Processed sequence from {filename_or_manual}")
-            
+
             except Exception as e:
-                latest_error = f"Error processing file {os.path.basename(event.src_path)}: {str(e)}"
-                latest_results = None
+                print(f"Error processing file {os.path.basename(event.src_path)}: {str(e)}")
 
 # --- Start Watchdog in a background thread ---
 def start_watcher():
@@ -91,19 +91,19 @@ threading.Thread(target=start_watcher, daemon=True).start()
 # --- Flask routes ---
 @app.route("/", methods=["GET", "POST"])
 def home():
-    global latest_results, latest_error, sequence_history
+    init_session()
+    latest_results = None
+    latest_error = None
 
     if request.method == "POST":
         raw_seq = request.form.get("sequence", "")
         seq = clean_sequence(raw_seq)
         filename_or_manual = "Manual Input"
-        
+
         if not seq:
             latest_error = "Please enter a DNA sequence."
-            latest_results = None
         elif not is_valid_dna(seq):
             latest_error = "Invalid DNA sequence. Use only A, T, G, and C."
-            latest_results = None
         else:
             # --- Process DNA ---
             protein_data = translate_dna(seq)
@@ -124,20 +124,21 @@ def home():
                 "source": filename_or_manual
             }
 
-            # --- Append to history ---
-            sequence_history.append({
+            # --- Append to session history ---
+            session["sequence_history"].append({
+                "id": str(uuid.uuid4()),
                 "file": filename_or_manual,
                 "results": latest_results
             })
-
-            latest_error = None
+            session.modified = True
 
     return render_template("index.html", results=latest_results, error=latest_error)
 
 @app.route("/history")
 def history():
+    init_session()
     # Show last 10 sequences (newest first)
-    last_sequences = sequence_history[-10:][::-1]
+    last_sequences = session["sequence_history"][-10:][::-1]
     return render_template("history.html", history=last_sequences)
 
 @app.route("/about")
