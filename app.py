@@ -1,148 +1,110 @@
-from flask import Flask, render_template, request
-from analysis import clean_sequence, sequence_length, gc_content, translate_dna, is_valid_dna, reverse_complement
-import threading
-import time
 import os
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from flask import Flask, render_template, request
+from werkzeug.utils import secure_filename
+from analysis import clean_sequence, sequence_length, gc_content, translate_dna, is_valid_dna, reverse_complement
 
+# --- FLASK APP SETUP ---
 app = Flask(__name__)
 
-# --- Global variables ---
-latest_results = None
-latest_error = None
-sequence_history = []  # Store history of sequences
+# --- CONFIG ---
+UPLOAD_FOLDER = "lab_exports"
+ALLOWED_EXTENSIONS = {"txt"}
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# --- Folder to watch for new DNA files ---
-WATCH_FOLDER = "./lab_exports"
-os.makedirs(WATCH_FOLDER, exist_ok=True)
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
-# --- Watchdog event handler ---
-class DNAFileHandler(FileSystemEventHandler):
-    def on_created(self, event):
-        global latest_results, latest_error, sequence_history
-        if event.is_directory:
-            return
-        if event.src_path.endswith((".txt", ".csv")):
-            try:
-                with open(event.src_path, "r") as f:
-                    raw_seq = f.read().strip()
-                
-                seq = clean_sequence(raw_seq)
-                filename_or_manual = os.path.basename(event.src_path)
+# --- HELPERS ---
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-                if not seq:
-                    latest_error = f"No DNA sequence found in {filename_or_manual}"
-                    latest_results = None
-                    return
-                if not is_valid_dna(seq):
-                    latest_error = f"Invalid DNA sequence in {filename_or_manual}"
-                    latest_results = None
-                    return
-                
-                # --- Process DNA ---
-                protein_data = translate_dna(seq)
-                rev_comp_seq = reverse_complement(seq)
-                complement_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
-                comp_pairs = [{"original": base, "complement": complement_map.get(base, base)} for base in seq]
-                rev_comp_pairs = comp_pairs[::-1]
-                protein_string = "".join([item['name'][0] if item['name'] != 'STOP' else '*' for item in protein_data])
+def get_history_files():
+    """Return TXT files in lab_exports sorted newest first"""
+    files = [f for f in os.listdir(UPLOAD_FOLDER) if allowed_file(f)]
+    files.sort(key=lambda x: os.path.getmtime(os.path.join(UPLOAD_FOLDER, x)), reverse=True)
+    return files
 
-                latest_results = {
-                    "length": sequence_length(seq),
-                    "gc": gc_content(seq),
-                    "protein_length": len(protein_data),
-                    "protein": protein_data,
-                    "protein_str": protein_string,
-                    "rev_comp": rev_comp_seq,
-                    "rev_comp_pairs": rev_comp_pairs,
-                    "source": filename_or_manual
-                }
+# --- DNA ANALYSIS FUNCTION ---
+def analyze_sequence(seq):
+    """Return all computed DNA/protein info as dict"""
+    protein_data = translate_dna(seq)
+    protein_string = "".join([item['name'][0] if item['name'] != 'STOP' else '*' for item in protein_data])
+    rev_comp_seq = reverse_complement(seq)
+    complement_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+    comp_pairs = [{"original": base, "complement": complement_map.get(base, base)} for base in seq]
+    rev_comp_pairs = comp_pairs[::-1]
 
-                # --- Append to history ---
-                sequence_history.append({
-                    "file": filename_or_manual,
-                    "results": latest_results
-                })
+    return {
+        "length": sequence_length(seq),
+        "gc": gc_content(seq),
+        "protein_length": len(protein_data),
+        "protein": protein_data,
+        "protein_str": protein_string,
+        "rev_comp": rev_comp_seq,
+        "rev_comp_pairs": rev_comp_pairs,
+    }
 
-                latest_error = None
-                print(f"Processed sequence from {filename_or_manual}")
-            
-            except Exception as e:
-                latest_error = f"Error processing file {os.path.basename(event.src_path)}: {str(e)}"
-                latest_results = None
-
-# --- Start Watchdog in a background thread ---
-def start_watcher():
-    observer = Observer()
-    event_handler = DNAFileHandler()
-    observer.schedule(event_handler, WATCH_FOLDER, recursive=False)
-    observer.start()
-    print(f"Watching folder '{WATCH_FOLDER}' for new DNA files...")
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
-
-threading.Thread(target=start_watcher, daemon=True).start()
-
-# --- Flask routes ---
+# --- ROUTES ---
 @app.route("/", methods=["GET", "POST"])
 def home():
-    global latest_results, latest_error, sequence_history
+    results = None
+    error = None
+    raw_seq = ""
 
     if request.method == "POST":
-        raw_seq = request.form.get("sequence", "")
+        # --- FILE UPLOAD ---
+        file = request.files.get("file")
+        raw_seq = ""
+        if file and file.filename != "":
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                file.save(filepath)
+                file.seek(0)
+                raw_seq = file.read().decode("utf-8")
+            else:
+                error = "Invalid file type. Only TXT files are allowed."
+
+        # --- FALLBACK TO MANUAL INPUT ---
+        if not raw_seq:
+            raw_seq = request.form.get("sequence", "")
+
+        # --- PROCESS SEQUENCE ---
         seq = clean_sequence(raw_seq)
-        filename_or_manual = "Manual Input"
-        
         if not seq:
-            latest_error = "Please enter a DNA sequence."
-            latest_results = None
+            error = "Please enter a DNA sequence."
         elif not is_valid_dna(seq):
-            latest_error = "Invalid DNA sequence. Use only A, T, G, and C."
-            latest_results = None
+            error = "Invalid DNA sequence. Use only A, T, G, and C."
         else:
-            # --- Process DNA ---
-            protein_data = translate_dna(seq)
-            rev_comp_seq = reverse_complement(seq)
-            complement_map = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
-            comp_pairs = [{"original": base, "complement": complement_map.get(base, base)} for base in seq]
-            rev_comp_pairs = comp_pairs[::-1]
-            protein_string = "".join([item['name'][0] if item['name'] != 'STOP' else '*' for item in protein_data])
+            results = analyze_sequence(seq)
 
-            latest_results = {
-                "length": sequence_length(seq),
-                "gc": gc_content(seq),
-                "protein_length": len(protein_data),
-                "protein": protein_data,
-                "protein_str": protein_string,
-                "rev_comp": rev_comp_seq,
-                "rev_comp_pairs": rev_comp_pairs,
-                "source": filename_or_manual
-            }
+    history_files = get_history_files()
+    return render_template("index.html", results=results, error=error, history_files=history_files)
 
-            # --- Append to history ---
-            sequence_history.append({
-                "file": filename_or_manual,
-                "results": latest_results
-            })
 
-            latest_error = None
+@app.route("/history/<filename>")
+def history(filename):
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    if not os.path.exists(filepath):
+        return f"File {filename} not found", 404
 
-    return render_template("index.html", results=latest_results, error=latest_error)
+    with open(filepath, "r") as f:
+        raw_seq = f.read()
 
-@app.route("/history")
-def history():
-    # Show last 10 sequences (newest first)
-    last_sequences = sequence_history[-10:][::-1]
-    return render_template("history.html", history=last_sequences)
+    seq = clean_sequence(raw_seq)
+    if not seq or not is_valid_dna(seq):
+        results = {"error": "Invalid DNA sequence in file."}
+    else:
+        results = analyze_sequence(seq)
+
+    history_files = get_history_files()
+    return render_template("index.html", results=results, history_files=history_files, selected_file=filename)
+
 
 @app.route("/about")
 def about():
     return render_template("about.html")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
