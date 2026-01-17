@@ -101,6 +101,21 @@
 
     </form>
 
+   <h3 class="exports">Lab Exports</h3>
+<ul class="exports">
+  {% for file in history_files %}
+    <li>
+      {% if selected_file == file %}
+        <strong>{{ file }}</strong>
+      {% else %}
+        <a href="{{ url_for('history', filename=file) }}" class="history">{{ file }}</a>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+
+<br>
+        
  {% if results %}
 <section class="stats">
   <div class="stat-card">
