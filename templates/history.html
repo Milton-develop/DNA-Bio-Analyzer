@@ -1,50 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Sequence History</title>
+    <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; }
-        h1, h2 { color: #333; }
-        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #0284c7; }
-        .sequence-block { background-color: #fff; padding: 10px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #333; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .protein { font-family: monospace; }
     </style>
 </head>
 <body>
-    <h1>Sequence History</h1>
+    <h1>Sequence History (Last 10)</h1>
     {% if history %}
-        {% for item in history %}
-        <div class="sequence-block">
-            <h2>{{ item.file }} {% if item.results.source %}(Source: {{ item.results.source }}){% endif %}</h2>
-            <p><strong>Sequence Length:</strong> {{ item.results.length }} bp</p>
-            <p><strong>GC Content:</strong> {{ item.results.gc }}%</p>
-            <p><strong>Protein Length:</strong> {{ item.results.protein_length }} aa</p>
-            <p><strong>DNA Strand (5' ➡️ 3'):</strong> {{ item.results.rev_comp_pairs | map(attribute='original') | join('') }}</p>
-            <p><strong>Reverse Complement:</strong> {{ item.results.rev_comp }}</p>
-            
-            <h3>Protein Translation</h3>
-            <table>
-                <thead>
+        <table>
+            <thead>
+                <tr>
+                    <th>Source</th>
+                    <th>DNA Sequence Length</th>
+                    <th>GC Content (%)</th>
+                    <th>Protein Length</th>
+                    <th>Protein Sequence</th>
+                    <th>Reverse Complement</th>
+                    <th>Strand Mapping</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in history %}
                     <tr>
-                        <th>Codon</th>
-                        <th>Amino Acid</th>
+                        <td>{{ entry.file }}</td>
+                        <td>{{ entry.results.length }}</td>
+                        <td>{{ entry.results.gc }}</td>
+                        <td>{{ entry.results.protein_length }}</td>
+                        <td class="protein">{{ entry.results.protein_str }}</td>
+                        <td class="protein">{{ entry.results.rev_comp }}</td>
+                        <td>
+                            {% for pair in entry.results.rev_comp_pairs %}
+                                {{ pair.original }}→{{ pair.complement }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for aa in item.results.protein %}
-                    <tr>
-                        <td>{{ aa.codon }}</td>
-                        <td>{{ aa.name }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
-        <p>No previous sequences.</p>
+        <p>No sequences processed yet.</p>
     {% endif %}
-    <a href="/" class='back'>Back to Dashboard</a>
+    <a href="/">Back to Home</a>
 </body>
 </html>
