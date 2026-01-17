@@ -459,9 +459,7 @@ body.dark-mode .base-T { color: #4dabf7; }
 body.dark-mode .base-G { color: #ffd43b; }
 body.dark-mode .base-C { color: #69db7c; }
 
-.tests, .history{
+.tests{
     color: var(--primary);
 }
-.exports{
-    padding-left: 20px;
-}
+
