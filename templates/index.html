@@ -19,6 +19,7 @@
         <nav>
             <ul class="sidebar">
                 <li class="active"><a>Dashboard</a></li>
+                <li><a href="/history" class="tests">View Tests</a></li>
                 <li><a href="{{ url_for('about') }}">About Tool</a></li>
             </ul>
         </nav>
@@ -34,7 +35,7 @@
         <textarea name="sequence" id="sequence" placeholder="AGTCTTGACG..." rows="5" required></textarea>
         <button type="submit" class="btn">Analyze Sequence</button>
         <button type="reset" class="btnn">Clear</button>
-        <a href="/history" class="tests">View Tests</a>
+       
 
 
 {% if error %}
