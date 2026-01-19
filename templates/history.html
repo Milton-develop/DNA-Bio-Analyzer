@@ -34,6 +34,11 @@
             text-align: center;
             color:red;
         }
+        .sequence{
+            word-break: break-all;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -45,8 +50,8 @@
             <p><strong>Sequence Length:</strong> {{ item.results.length }} bp</p>
             <p><strong>GC Content:</strong> {{ item.results.gc }}%</p>
             <p><strong>Protein Length:</strong> {{ item.results.protein_length }} aa</p>
-            <p><strong>DNA Strand (5' ➡️ 3'):</strong> {{ item.results.rev_comp_pairs | map(attribute='original') | join('') }}</p>
-            <p><strong>Reverse Complement:</strong> {{ item.results.rev_comp }}</p>
+            <p class="sequence"><strong>DNA Strand (5' ➡️ 3'):</strong> {{ item.results.rev_comp_pairs | map(attribute='original') | join('') }}</p>
+            <p class="sequence"><strong>Reverse Complement:</strong> {{ item.results.rev_comp }}</p>
             
             <h3>Protein Translation</h3>
             <table>
